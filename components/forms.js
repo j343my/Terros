@@ -164,8 +164,14 @@ export function BacForm({ initial, onSave, onClose }) {
   );
 }
 
+const CALENDAR_NAMES = CALENDRIER_IDF.map(p => p.nom);
+
 export function PlantForm({ initial, bacs, defaultBacId, onSave, onClose }) {
-  const [nom, setNom] = useState(initial?.nom || '');
+  const initialIsCustom = initial?.nom ? !CALENDAR_NAMES.includes(initial.nom) : false;
+  const [nomSelect, setNomSelect] = useState(initialIsCustom ? '__autre__' : (initial?.nom || ''));
+  const [nomCustom, setNomCustom] = useState(initialIsCustom ? (initial?.nom || '') : '');
+  const nom = nomSelect === '__autre__' ? nomCustom : nomSelect;
+
   const [varietal, setVarietal] = useState(initial?.varietal || '');
   const [bacId, setBacId] = useState(initial?.bac_id || defaultBacId || bacs[0]?.id || '');
   const [origine, setOrigine] = useState(initial?.origine || 'semence_propre');
@@ -191,21 +197,31 @@ export function PlantForm({ initial, bacs, defaultBacId, onSave, onClose }) {
 
   return (
     <Modal title={initial ? 'Modifier la plante' : 'Nouvelle plante'} onClose={onClose}>
-      {/* Autocomplete avec les plantes du référentiel */}
-      <datalist id="plantes-idf">
-        {CALENDRIER_IDF.map(p => <option key={p.nom} value={p.nom} />)}
-      </datalist>
-
       <div className="field">
         <label>Plante</label>
-        <input
-          value={nom}
-          onChange={e => setNom(e.target.value)}
-          placeholder="Ex : Tomate"
-          list="plantes-idf"
-          autoComplete="off"
-        />
+        <select
+          value={nomSelect}
+          onChange={e => { setNomSelect(e.target.value); setNomCustom(''); }}
+        >
+          <option value="">— Choisir une plante —</option>
+          {CALENDRIER_IDF.map(p => (
+            <option key={p.nom} value={p.nom}>{p.emoji} {p.nom}</option>
+          ))}
+          <option value="__autre__">Autre…</option>
+        </select>
       </div>
+
+      {nomSelect === '__autre__' && (
+        <div className="field">
+          <label>Nom personnalisé</label>
+          <input
+            value={nomCustom}
+            onChange={e => setNomCustom(e.target.value)}
+            placeholder="Ex : Aubergine violette"
+            autoFocus
+          />
+        </div>
+      )}
 
       {/* Panneau de conseil si la plante est dans le référentiel */}
       {refPlante && (
