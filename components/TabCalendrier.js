@@ -18,6 +18,7 @@ const FAMILLES_ORDER = [
   'Salade',"Salade d'hiver",'Légume-feuille',
   'Aromatique','Fruit',
   'Fleur','Exotique',
+  'Graminée','Arbuste','Conifère','Succulente',
 ];
 
 const ARROSAGE_LABELS = {
@@ -28,10 +29,14 @@ const ARROSAGE_LABELS = {
 };
 
 const FAMILLE_COLORS = {
-  'Fleur':    { bg: '#fde8f4', color: '#9b2c6e' },
-  'Exotique': { bg: '#fef3e2', color: '#92400e' },
-  'Fruit':    { bg: '#fef3e2', color: '#92400e' },
+  'Fleur':      { bg: '#fde8f4', color: '#9b2c6e' },
+  'Exotique':   { bg: '#fef3e2', color: '#92400e' },
+  'Fruit':      { bg: '#fef3e2', color: '#92400e' },
   'Aromatique': { bg: '#ecfdf5', color: '#065f46' },
+  'Graminée':   { bg: '#f0fdf4', color: '#166534' },
+  'Arbuste':    { bg: '#f0fdf4', color: '#166534' },
+  'Conifère':   { bg: '#f0fdf4', color: '#166534' },
+  'Succulente': { bg: '#fff7ed', color: '#9a3412' },
 };
 
 // ──────────────────────────────────────────────────────────
@@ -428,7 +433,7 @@ function ReferentielView() {
                 fontWeight: isActive ? 600 : 400,
               }}
             >
-              {f === 'Fleur' ? '🌸 ' : f === 'Exotique' ? '🌴 ' : ''}{f}
+              {f === 'Fleur' ? '🌸 ' : f === 'Exotique' ? '🌴 ' : f === 'Succulente' ? '🌵 ' : f === 'Conifère' ? '🎄 ' : f === 'Graminée' ? '🌾 ' : f === 'Arbuste' ? '🌿 ' : ''}{f}
             </button>
           );
         })}
