@@ -83,7 +83,7 @@ export default function TabBacs({ bacs, plants, journal, setBacs, setPlants, set
                 <div style={{ flex: 1 }}>
                   <div className="card-title">{bac.nom}</div>
                   <div className="card-sub">
-                    {[bac.dimensions && bac.dimensions + ' cm', bac.volume && bac.volume + ' L', bac.exposition].filter(Boolean).join(' · ')}
+                    {[bac.dimensions && bac.dimensions + ' cm', bac.volume && bac.volume + ' L', bac.exposition, bac.emplacement === 'interieur' ? 'Intérieur' : 'Extérieur'].filter(Boolean).join(' · ')}
                   </div>
                 </div>
                 <div className="card-actions">
