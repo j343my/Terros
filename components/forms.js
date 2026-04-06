@@ -14,6 +14,28 @@ const STATUS_ICONS = {
   late:     { icon: '✗', color: 'var(--gray-500)',  bg: 'var(--gray-100)' },
 };
 
+function toPositiveNumber(value) {
+  const parsed = Number(String(value || '').replace(',', '.'));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function parseLegacyDimensions(dimensions) {
+  const raw = String(dimensions || '').replace(/\s/g, '');
+  const rond = raw.match(/^Ø?(\d+(?:[.,]\d+)?)×(\d+(?:[.,]\d+)?)$/i);
+  if (rond) {
+    return { forme: 'rond', diametre: rond[1].replace(',', '.'), hauteur: rond[2].replace(',', '.') };
+  }
+  const rect3 = raw.match(/^(\d+(?:[.,]\d+)?)×(\d+(?:[.,]\d+)?)×(\d+(?:[.,]\d+)?)$/);
+  if (rect3) {
+    return { forme: 'carre', largeur: rect3[1].replace(',', '.'), profondeur: rect3[2].replace(',', '.'), hauteur: rect3[3].replace(',', '.') };
+  }
+  const rect2 = raw.match(/^(\d+(?:[.,]\d+)?)×(\d+(?:[.,]\d+)?)$/);
+  if (rect2) {
+    return { forme: 'carre', largeur: rect2[1].replace(',', '.'), profondeur: rect2[2].replace(',', '.') };
+  }
+  return null;
+}
+
 function ConseilPanel({ plante, onPrefill }) {
   const currentMonth = new Date().getMonth();
   const conseil = useMemo(() => getConseil(plante, currentMonth), [plante, currentMonth]);
@@ -138,20 +160,67 @@ function ConseilPanel({ plante, onPrefill }) {
 }
 
 export function BacForm({ initial, onSave, onClose }) {
+  const legacy = useMemo(() => parseLegacyDimensions(initial?.dimensions), [initial?.dimensions]);
   const [nom, setNom] = useState(initial?.nom || '');
-  const [dim, setDim] = useState(initial?.dimensions || '');
-  const [vol, setVol] = useState(initial?.volume || '');
+  const [forme, setForme] = useState(initial?.forme || legacy?.forme || 'carre');
+  const [largeur, setLargeur] = useState(initial?.largeur || legacy?.largeur || '');
+  const [profondeur, setProfondeur] = useState(initial?.profondeur || legacy?.profondeur || '');
+  const [diametre, setDiametre] = useState(initial?.diametre || legacy?.diametre || '');
+  const [hauteur, setHauteur] = useState(initial?.hauteur || legacy?.hauteur || '');
   const [expo, setExpo] = useState(initial?.exposition || 'Sud-Est');
   const [emplacement, setEmplacement] = useState(initial?.emplacement || 'exterieur');
   const [etat, setEtat] = useState(initial?.etat || 'actif');
   const [conseils, setConseils] = useState(initial?.conseils || '');
   const [notes, setNotes] = useState(initial?.notes || '');
 
+  const volumeCalcule = useMemo(() => {
+    const h = toPositiveNumber(hauteur);
+    if (!h) return null;
+    if (forme === 'rond') {
+      const d = toPositiveNumber(diametre);
+      if (!d) return null;
+      return Math.PI * (d / 2) * (d / 2) * h / 1000;
+    }
+    const l = toPositiveNumber(largeur);
+    const p = toPositiveNumber(profondeur);
+    if (!l || !p) return null;
+    return l * p * h / 1000;
+  }, [forme, largeur, profondeur, diametre, hauteur]);
+
+  const vol = useMemo(() => (volumeCalcule ? String(Math.round(volumeCalcule)) : ''), [volumeCalcule]);
+
+  const dimensionsTexte = useMemo(() => {
+    if (forme === 'rond') {
+      if (!diametre || !hauteur) return '';
+      return `Ø${diametre}×${hauteur}`;
+    }
+    if (!largeur || !profondeur || !hauteur) return '';
+    return `${largeur}×${profondeur}×${hauteur}`;
+  }, [forme, largeur, profondeur, diametre, hauteur]);
+
   return (
     <Modal title={initial ? 'Modifier le bac' : 'Nouveau bac'} onClose={onClose}>
       <div className="field"><label>Nom du bac</label><input value={nom} onChange={e => setNom(e.target.value)} placeholder="Ex : Bac long terrasse" /></div>
-      <div className="field"><label>Dimensions (L×l cm)</label><input value={dim} onChange={e => setDim(e.target.value)} placeholder="Ex : 60×30" /></div>
-      <div className="field"><label>Volume (litres)</label><input type="number" value={vol} onChange={e => setVol(e.target.value)} placeholder="Ex : 40" /></div>
+      <div className="field">
+        <label>Forme du bac</label>
+        <select value={forme} onChange={e => setForme(e.target.value)}>
+          <option value="carre">Carré / rectangulaire</option>
+          <option value="rond">Rond</option>
+        </select>
+      </div>
+      {forme === 'rond' ? (
+        <>
+          <div className="field"><label>Diamètre (cm)</label><input type="number" min="1" value={diametre} onChange={e => setDiametre(e.target.value)} placeholder="Ex : 40" /></div>
+          <div className="field"><label>Hauteur (cm)</label><input type="number" min="1" value={hauteur} onChange={e => setHauteur(e.target.value)} placeholder="Ex : 35" /></div>
+        </>
+      ) : (
+        <>
+          <div className="field"><label>Largeur (cm)</label><input type="number" min="1" value={largeur} onChange={e => setLargeur(e.target.value)} placeholder="Ex : 60" /></div>
+          <div className="field"><label>Profondeur (cm)</label><input type="number" min="1" value={profondeur} onChange={e => setProfondeur(e.target.value)} placeholder="Ex : 30" /></div>
+          <div className="field"><label>Hauteur (cm)</label><input type="number" min="1" value={hauteur} onChange={e => setHauteur(e.target.value)} placeholder="Ex : 35" /></div>
+        </>
+      )}
+      <div className="field"><label>Volume (litres, auto)</label><input type="number" value={vol} readOnly placeholder="Calcul automatique" /></div>
       <div className="field">
         <label>Emplacement</label>
         <select value={emplacement} onChange={e => setEmplacement(e.target.value)}>
@@ -181,7 +250,10 @@ export function BacForm({ initial, onSave, onClose }) {
       <div className="field"><label>Notes</label><textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Emplacement, particularités…" /></div>
       <div className="modal-actions">
         <button className="btn" onClick={onClose}>Annuler</button>
-        <button className="btn btn-primary" onClick={() => { if (nom) onSave({ nom, dimensions: dim, volume: vol, exposition: expo, emplacement, etat, conseils, notes }); }}>Enregistrer</button>
+        <button className="btn btn-primary" onClick={() => {
+          if (!nom || !dimensionsTexte || !vol) return;
+          onSave({ nom, forme, largeur, profondeur, diametre, hauteur, dimensions: dimensionsTexte, volume: vol, exposition: expo, emplacement, etat, conseils, notes });
+        }}>Enregistrer</button>
       </div>
     </Modal>
   );
@@ -221,6 +293,21 @@ export function PlantForm({ initial, bacs, plants = [], defaultBacId, onSave, on
     [nom, plantesDuBac],
   );
   const bacEmplacement = selectedBac?.emplacement || 'exterieur';
+  const surdensite = useMemo(() => {
+    if (!selectedBac || !nom) return null;
+    const volumeBac = toPositiveNumber(selectedBac.volume);
+    if (!volumeBac) return null;
+
+    const volumeOccupe = plantesDuBac.reduce((sum, plant) => {
+      const ref = findPlante(plant.nom);
+      return sum + (ref?.taille_min || 0);
+    }, 0);
+    const volumeNouveau = refPlante?.taille_min || 0;
+    const volumeTotal = volumeOccupe + volumeNouveau;
+    if (!volumeNouveau || volumeTotal <= volumeBac) return null;
+
+    return { volumeBac, volumeTotal, depassement: volumeTotal - volumeBac };
+  }, [selectedBac, nom, plantesDuBac, refPlante]);
   const cultureMismatch = useMemo(() => {
     if (!refPlante || !selectedBac) return null;
     if (cultureType === 'mixte') return null;
@@ -323,6 +410,22 @@ export function PlantForm({ initial, bacs, plants = [], defaultBacId, onSave, on
           color: cultureMismatch.level === 'warning' ? '#92400e' : '#1d4ed8',
         }}>
           {cultureMismatch.text}
+        </div>
+      )}
+      {surdensite && (
+        <div style={{
+          marginTop: -4,
+          marginBottom: 10,
+          padding: '8px 10px',
+          borderRadius: 8,
+          fontSize: 11,
+          lineHeight: 1.4,
+          border: '1px solid var(--amber-300)',
+          background: 'var(--amber-50)',
+          color: '#92400e',
+        }}>
+          ⚠️ Ce bac semble trop planté : {Math.round(surdensite.volumeTotal)} L recommandés au total pour ces plantes,
+          contre {Math.round(surdensite.volumeBac)} L disponibles (≈ +{Math.round(surdensite.depassement)} L).
         </div>
       )}
       {nom && plantesDuBac.length > 0 && (
