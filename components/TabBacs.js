@@ -4,6 +4,7 @@ import { BadgeOrigine, BadgeStatus } from './ui';
 import { BacForm, PlantForm } from './forms';
 import PlantDetail from './PlantDetail';
 import { STATUS_COLORS, uid } from '../lib/utils';
+import { findPlante } from '../lib/plantingCalendar';
 
 export default function TabBacs({ bacs, plants, journal, setBacs, setPlants, setJournal }) {
   const [showBacForm, setShowBacForm] = useState(false);
@@ -95,7 +96,7 @@ export default function TabBacs({ bacs, plants, journal, setBacs, setPlants, set
               ) : (
                 bp.map(p => (
                   <div key={p.id} className="plant-row" onClick={() => setDetailPlant(p)}>
-                    <div className="plant-dot" style={{ background: STATUS_COLORS[p.statut] || '#ccc' }} />
+                    <span className="plant-row-emoji">{findPlante(p.nom)?.emoji || '🌱'}</span>
                     <div style={{ flex: 1 }}>
                       <div className="plant-name">
                         {p.nom}

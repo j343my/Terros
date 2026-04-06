@@ -53,10 +53,11 @@ html, body {
    MOBILE LAYOUT (default)
 ═══════════════════════════════ */
 .app-shell {
-  min-height: 100dvh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--surface);
+  overflow: hidden;
 }
 
 .app-content-area {
@@ -89,7 +90,7 @@ html, body {
 
 .tab-bar {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   border-top: 1px solid var(--border);
   background: var(--surface);
   position: fixed;
@@ -430,8 +431,53 @@ html, body {
 .dates-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .date-chip { border-radius: 8px; padding: 10px 12px; }
 
+/* ── Plant image banner ── */
+.plant-image-banner {
+  border-radius: 10px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.plant-image-emoji { font-size: 56px; line-height: 1; }
+
+/* ── Plant reference notes ── */
+.plant-ref-notes {
+  font-size: 12px;
+  color: var(--text-2);
+  background: var(--gray-50);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+/* ── Plant emoji in row ── */
+.plant-row-emoji { font-size: 16px; line-height: 1; flex-shrink: 0; }
+
 /* ── Back row ── */
 .back-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+
+/* ── Plant detail header on mobile ── */
+.plant-detail-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.plant-detail-header .plant-detail-info { flex: 1; min-width: 0; }
+.plant-detail-header .plant-detail-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ── Arrosage card ── */
+.arrosage-card { transition: border-color 0.15s; }
+.arrosage-urgent { border-color: var(--terra-300) !important; }
 
 /* ── Notification badge ── */
 .notif-badge {

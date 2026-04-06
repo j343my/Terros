@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { BadgeOrigine, BadgeStatus } from './ui';
 import { MOIS, getPlantPhases, fmtDate, uid, today } from '../lib/utils';
+import { findPlante } from '../lib/plantingCalendar';
 
 const PHASE_COLORS = { semis: '#B5D4F4', croissance: '#C0DD97', recolte: '#EF9F27', none: '#F1EFE8' };
 
@@ -10,6 +11,10 @@ export default function PlantDetail({ plant, bac, journal, onAddJournal, onEditP
   const phases = getPlantPhases(plant);
   const pJournal = journal.filter(j => j.plant_id === plant.id).sort((a, b) => b.date.localeCompare(a.date));
 
+  const refPlante = findPlante(plant.nom);
+  const plantEmoji = refPlante?.emoji || '🌱';
+  const avatarBg = plant.origine === 'semence_propre' ? 'var(--green-100)' : plant.origine === 'graines_achetees' ? 'var(--blue-100)' : 'var(--amber-100)';
+
   return (
     <div>
       <div className="back-row">
@@ -17,16 +22,20 @@ export default function PlantDetail({ plant, bac, journal, onAddJournal, onEditP
       </div>
 
       <div className="card">
-        <div className="card-header">
-          <div className="bac-avatar" style={{ fontSize: 20, background: plant.origine === 'semence_propre' ? 'var(--green-100)' : plant.origine === 'graines_achetees' ? 'var(--blue-100)' : 'var(--amber-100)' }}>🌱</div>
-          <div style={{ flex: 1 }}>
+        {/* Image banner */}
+        <div className="plant-image-banner" style={{ background: avatarBg }}>
+          <span className="plant-image-emoji">{plantEmoji}</span>
+        </div>
+
+        <div className="plant-detail-header">
+          <div className="plant-detail-info">
             <div className="card-title">
               {plant.nom}
               {plant.varietal && <span style={{ fontWeight: 400, color: 'var(--text-3)' }}> · {plant.varietal}</span>}
             </div>
             <div className="card-sub">{bac?.nom}</div>
           </div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div className="plant-detail-actions">
             <button className="btn" style={{ padding: '5px 10px', fontSize: 12 }} onClick={onEditPlant}>Éditer</button>
             <button className="btn btn-danger" onClick={onDeletePlant}>Supprimer</button>
           </div>
@@ -36,6 +45,12 @@ export default function PlantDetail({ plant, bac, journal, onAddJournal, onEditP
           <BadgeOrigine val={plant.origine} />
           <BadgeStatus val={plant.statut} />
         </div>
+
+        {refPlante?.notes && (
+          <div className="plant-ref-notes">
+            <span style={{ marginRight: 6 }}>💡</span>{refPlante.notes}
+          </div>
+        )}
 
         <div className="section-title">Calendrier annuel</div>
         <div style={{ overflowX: 'auto', marginBottom: 4 }}>
