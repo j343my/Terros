@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { MOIS, getPlantPhases } from '../lib/utils';
-import { CALENDRIER_IDF, getRefPhases, getConseil, MOIS_COURT, getCultureType, isPlanteRecoltable } from '../lib/plantingCalendar';
+import { CALENDRIER_IDF, getRefPhases, getConseil, MOIS_COURT, getCultureType } from '../lib/plantingCalendar';
 import { Modal } from './ui';
 import { usePlantPhoto } from '../lib/usePlantPhoto';
 
@@ -438,7 +438,6 @@ function ReferentielView() {
       )
     : plantes;
   const plantesFiltrees = plantesFiltreesTexte
-    .filter(isPlanteRecoltable)
     .filter(p => cultureFilter === 'tout' ? true : getCultureType(p) === cultureFilter);
 
   // Trier : celles disponibles maintenant en premier
