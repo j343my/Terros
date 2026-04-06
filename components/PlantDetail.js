@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { BadgeOrigine, BadgeStatus } from './ui';
 import { MOIS, getPlantPhases, fmtDate, uid, today } from '../lib/utils';
 import { findPlante } from '../lib/plantingCalendar';
+import { usePlantPhoto } from '../lib/usePlantPhoto';
 
 const PHASE_COLORS = { semis: '#B5D4F4', croissance: '#C0DD97', recolte: '#EF9F27', none: '#F1EFE8' };
 
@@ -14,6 +15,7 @@ export default function PlantDetail({ plant, bac, journal, onAddJournal, onEditP
   const refPlante = findPlante(plant.nom);
   const plantEmoji = refPlante?.emoji || '🌱';
   const avatarBg = plant.origine === 'semence_propre' ? 'var(--green-100)' : plant.origine === 'graines_achetees' ? 'var(--blue-100)' : 'var(--amber-100)';
+  const { photoUrl, loading: photoLoading } = usePlantPhoto(plant.nom);
 
   return (
     <div>
@@ -23,8 +25,19 @@ export default function PlantDetail({ plant, bac, journal, onAddJournal, onEditP
 
       <div className="card">
         {/* Image banner */}
-        <div className="plant-image-banner" style={{ background: avatarBg }}>
-          <span className="plant-image-emoji">{plantEmoji}</span>
+        <div className="plant-image-banner" style={{ background: avatarBg, position: 'relative', overflow: 'hidden' }}>
+          {photoUrl ? (
+            <img
+              src={photoUrl}
+              alt={plant.nom}
+              className="plant-image-photo"
+              onError={e => { e.currentTarget.style.display = 'none'; }}
+            />
+          ) : (
+            <span className="plant-image-emoji" style={{ opacity: photoLoading ? 0.4 : 1 }}>
+              {plantEmoji}
+            </span>
+          )}
         </div>
 
         <div className="plant-detail-header">
