@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { MOIS, getPlantPhases } from '../lib/utils';
-import { CALENDRIER_IDF, getRefPhases, getConseil, MOIS_COURT } from '../lib/plantingCalendar';
+import { CALENDRIER_IDF, getRefPhases, getConseil, MOIS_COURT, getCultureType, isPlanteRecoltable } from '../lib/plantingCalendar';
 import { Modal } from './ui';
 import { usePlantPhoto } from '../lib/usePlantPhoto';
 
@@ -48,17 +48,18 @@ const FAMILLE_COLORS = {
 function PotagerView({ plants, bacs }) {
   const yr = new Date().getFullYear();
   const [recherche, setRecherche] = useState('');
+  const plantsRecoltables = plants.filter(p => p.date_recolte);
 
-  if (plants.length === 0) return (
+  if (plantsRecoltables.length === 0) return (
     <div className="empty">
       <div className="empty-icon">📅</div>
-      <div className="empty-text">Ajoute des plantes pour voir leur calendrier</div>
+      <div className="empty-text">Ajoute des plantes avec une date de récolte pour voir leur calendrier</div>
     </div>
   );
 
   const plantesFiltrees = recherche.trim()
-    ? plants.filter(p => p.nom.toLowerCase().includes(recherche.toLowerCase().trim()))
-    : plants;
+    ? plantsRecoltables.filter(p => p.nom.toLowerCase().includes(recherche.toLowerCase().trim()))
+    : plantsRecoltables;
 
   return (
     <div>
@@ -152,6 +153,7 @@ function FichePlante({ plante, onClose }) {
   const { photoUrl } = usePlantPhoto(plante.nom);
   const phases = getRefPhases(plante);
   const isFleur = plante.famille === 'Fleur';
+  const cultureType = getCultureType(plante);
   const recolteLabel = isFleur ? 'Floraison' : 'Récolte';
 
   const famColor = FAMILLE_COLORS[plante.famille] || { bg: 'var(--green-100)', color: 'var(--green-700)' };
@@ -194,6 +196,12 @@ function FichePlante({ plante, onClose }) {
             {DIFFICULTE_LABELS[plante.difficulte] || ''}
           </span>
         </div>
+        <span style={{
+          padding: '2px 9px', borderRadius: 99, fontSize: 11, fontWeight: 600,
+          background: 'var(--gray-100)', color: 'var(--text-2)',
+        }}>
+          {cultureType === 'interieur' ? '🏠 Intérieur' : cultureType === 'mixte' ? '🏠/🌤️ Intérieur-Extérieur' : '🌤️ Extérieur'}
+        </span>
       </div>
 
       {/* Stats pratiques */}
@@ -413,6 +421,7 @@ function RefCard({ plante, onClick }) {
 function ReferentielView() {
   const currentMonth = new Date().getMonth();
   const [filtre, setFiltre] = useState('Tout');
+  const [cultureFilter, setCultureFilter] = useState('tout');
   const [fichePlante, setFichePlante] = useState(null);
   const [recherche, setRecherche] = useState('');
 
@@ -422,12 +431,15 @@ function ReferentielView() {
     ? CALENDRIER_IDF
     : CALENDRIER_IDF.filter(p => p.famille === filtre);
 
-  const plantesFiltrees = recherche.trim()
+  const plantesFiltreesTexte = recherche.trim()
     ? plantes.filter(p =>
         p.nom.toLowerCase().includes(recherche.toLowerCase().trim()) ||
         p.famille.toLowerCase().includes(recherche.toLowerCase().trim())
       )
     : plantes;
+  const plantesFiltrees = plantesFiltreesTexte
+    .filter(isPlanteRecoltable)
+    .filter(p => cultureFilter === 'tout' ? true : getCultureType(p) === cultureFilter);
 
   // Trier : celles disponibles maintenant en premier
   const sorted = [...plantesFiltrees].sort((a, b) => {
@@ -515,6 +527,30 @@ function ReferentielView() {
             </button>
           );
         })}
+      </div>
+
+      {/* Filtre intérieur / extérieur */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+        {[
+          ['tout', 'Tous milieux'],
+          ['exterieur', '🌤️ Extérieur'],
+          ['interieur', '🏠 Intérieur'],
+          ['mixte', '🏠/🌤️ Mixte'],
+        ].map(([id, label]) => (
+          <button
+            key={id}
+            onClick={() => setCultureFilter(id)}
+            style={{
+              padding: '4px 10px', borderRadius: 99, fontSize: 11, cursor: 'pointer',
+              border: '1px solid var(--border-strong)', fontFamily: 'inherit',
+              background: cultureFilter === id ? 'var(--green-700)' : 'var(--surface)',
+              color: cultureFilter === id ? '#fff' : 'var(--text-2)',
+              fontWeight: cultureFilter === id ? 600 : 400,
+            }}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Grille des plantes */}

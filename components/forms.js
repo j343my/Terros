@@ -2,7 +2,7 @@
 import { useState, useMemo } from 'react';
 import { Modal } from './ui';
 import { STATUS_LABELS } from '../lib/utils';
-import { CALENDRIER_IDF, findPlante, getConseil, suggestDates } from '../lib/plantingCalendar';
+import { CALENDRIER_IDF, findPlante, getConseil, suggestDates, getCultureType, isPlanteRecoltable } from '../lib/plantingCalendar';
 
 const MOIS_COURT = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
 
@@ -142,6 +142,7 @@ export function BacForm({ initial, onSave, onClose }) {
   const [dim, setDim] = useState(initial?.dimensions || '');
   const [vol, setVol] = useState(initial?.volume || '');
   const [expo, setExpo] = useState(initial?.exposition || 'Sud-Est');
+  const [emplacement, setEmplacement] = useState(initial?.emplacement || 'exterieur');
   const [notes, setNotes] = useState(initial?.notes || '');
 
   return (
@@ -149,6 +150,13 @@ export function BacForm({ initial, onSave, onClose }) {
       <div className="field"><label>Nom du bac</label><input value={nom} onChange={e => setNom(e.target.value)} placeholder="Ex : Bac long terrasse" /></div>
       <div className="field"><label>Dimensions (L×l cm)</label><input value={dim} onChange={e => setDim(e.target.value)} placeholder="Ex : 60×30" /></div>
       <div className="field"><label>Volume (litres)</label><input type="number" value={vol} onChange={e => setVol(e.target.value)} placeholder="Ex : 40" /></div>
+      <div className="field">
+        <label>Emplacement</label>
+        <select value={emplacement} onChange={e => setEmplacement(e.target.value)}>
+          <option value="exterieur">Extérieur</option>
+          <option value="interieur">Intérieur</option>
+        </select>
+      </div>
       <div className="field">
         <label>Exposition</label>
         <select value={expo} onChange={e => setExpo(e.target.value)}>
@@ -158,7 +166,7 @@ export function BacForm({ initial, onSave, onClose }) {
       <div className="field"><label>Notes</label><textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Emplacement, particularités…" /></div>
       <div className="modal-actions">
         <button className="btn" onClick={onClose}>Annuler</button>
-        <button className="btn btn-primary" onClick={() => { if (nom) onSave({ nom, dimensions: dim, volume: vol, exposition: expo, notes }); }}>Enregistrer</button>
+        <button className="btn btn-primary" onClick={() => { if (nom) onSave({ nom, dimensions: dim, volume: vol, exposition: expo, emplacement, notes }); }}>Enregistrer</button>
       </div>
     </Modal>
   );
@@ -168,6 +176,7 @@ const CALENDAR_NAMES = CALENDRIER_IDF.map(p => p.nom);
 
 export function PlantForm({ initial, bacs, defaultBacId, onSave, onClose }) {
   const initialIsCustom = initial?.nom ? !CALENDAR_NAMES.includes(initial.nom) : false;
+  const [search, setSearch] = useState('');
   const [nomSelect, setNomSelect] = useState(initialIsCustom ? '__autre__' : (initial?.nom || ''));
   const [nomCustom, setNomCustom] = useState(initialIsCustom ? (initial?.nom || '') : '');
   const nom = nomSelect === '__autre__' ? nomCustom : nomSelect;
@@ -185,6 +194,16 @@ export function PlantForm({ initial, bacs, defaultBacId, onSave, onClose }) {
 
   // Correspondance dans le référentiel IDF
   const refPlante = useMemo(() => findPlante(nom), [nom]);
+  const cultureType = useMemo(() => getCultureType(refPlante), [refPlante]);
+  const recoltable = useMemo(() => (refPlante ? isPlanteRecoltable(refPlante) : true), [refPlante]);
+  const plantesFiltrees = useMemo(() => {
+    const query = search.toLowerCase().trim();
+    if (!query) return CALENDRIER_IDF;
+    return CALENDRIER_IDF.filter(p =>
+      p.nom.toLowerCase().includes(query)
+      || p.famille.toLowerCase().includes(query)
+    );
+  }, [search]);
 
   const handlePrefill = () => {
     if (!refPlante) return;
@@ -199,12 +218,18 @@ export function PlantForm({ initial, bacs, defaultBacId, onSave, onClose }) {
     <Modal title={initial ? 'Modifier la plante' : 'Nouvelle plante'} onClose={onClose}>
       <div className="field">
         <label>Plante</label>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Rechercher une plante..."
+          style={{ marginBottom: 8 }}
+        />
         <select
           value={nomSelect}
           onChange={e => { setNomSelect(e.target.value); setNomCustom(''); }}
         >
           <option value="">— Choisir une plante —</option>
-          {CALENDRIER_IDF.map(p => (
+          {plantesFiltrees.map(p => (
             <option key={p.nom} value={p.nom}>{p.emoji} {p.nom}</option>
           ))}
           <option value="__autre__">Autre…</option>
@@ -224,6 +249,12 @@ export function PlantForm({ initial, bacs, defaultBacId, onSave, onClose }) {
       )}
 
       {/* Panneau de conseil si la plante est dans le référentiel */}
+      {refPlante && (
+        <div style={{ marginBottom: 8, fontSize: 11, color: 'var(--text-3)' }}>
+          Culture recommandée : <strong>{cultureType === 'interieur' ? 'Intérieur' : cultureType === 'mixte' ? 'Intérieur / Extérieur' : 'Extérieur'}</strong>
+        </div>
+      )}
+
       {refPlante && (
         <ConseilPanel plante={refPlante} onPrefill={handlePrefill} />
       )}
@@ -247,7 +278,7 @@ export function PlantForm({ initial, bacs, defaultBacId, onSave, onClose }) {
       </div>
       {needsSemis && <div className="field"><label>Date de semis (intérieur)</label><input type="date" value={dateSemis} onChange={e => setDateSemis(e.target.value)} /></div>}
       <div className="field"><label>{needsSemis ? 'Date de plantation (dehors)' : 'Date de plantation'}</label><input type="date" value={datePlantation} onChange={e => setDatePlantation(e.target.value)} /></div>
-      <div className="field"><label>Début de récolte</label><input type="date" value={dateRecolte} onChange={e => setDateRecolte(e.target.value)} /></div>
+      {recoltable && <div className="field"><label>Début de récolte</label><input type="date" value={dateRecolte} onChange={e => setDateRecolte(e.target.value)} /></div>}
       <div className="field"><label>Date de fin / arrachage</label><input type="date" value={dateFin} onChange={e => setDateFin(e.target.value)} /></div>
       <div className="field">
         <label>Statut actuel</label>
