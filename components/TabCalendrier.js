@@ -19,6 +19,7 @@ const FAMILLES_ORDER = [
   'Salade',"Salade d'hiver",'Légume-feuille',
   'Aromatique','Fruit',
   'Fleur','Exotique',
+  'Plante verte',
   'Graminée','Arbuste','Conifère','Succulente',
 ];
 
@@ -37,7 +38,8 @@ const FAMILLE_COLORS = {
   'Graminée':   { bg: '#f0fdf4', color: '#166534' },
   'Arbuste':    { bg: '#f0fdf4', color: '#166534' },
   'Conifère':   { bg: '#f0fdf4', color: '#166534' },
-  'Succulente': { bg: '#fff7ed', color: '#9a3412' },
+  'Succulente':    { bg: '#fff7ed', color: '#9a3412' },
+  'Plante verte':  { bg: '#ecfdf5', color: '#065f46' },
 };
 
 // ──────────────────────────────────────────────────────────
