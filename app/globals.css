@@ -324,6 +324,38 @@ html, body {
 }
 .btn-add:hover { border-color: var(--green-600); color: var(--green-700); background: var(--green-50); }
 
+.wizard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.wizard-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 10px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.wizard-meta { font-size: 12px; color: var(--text-3); margin-bottom: 12px; }
+.wizard-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.wizard-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+.wizard-title { font-weight: 700; font-size: 14px; }
+.wizard-sub { font-size: 11px; color: var(--text-2); }
+.wizard-conflict { margin-top: 4px; font-size: 11px; color: var(--terra-500); }
+
+@media (max-width: 700px) {
+  .wizard-grid { grid-template-columns: 1fr; }
+}
+
 /* ── Section titles ── */
 .section-title {
   font-size: 11px; font-weight: 700; color: var(--text-3);

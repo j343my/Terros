@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { BadgeOrigine, BadgeStatus } from './ui';
 import { BacForm, PlantForm } from './forms';
 import PlantDetail from './PlantDetail';
+import PlantWizard from './PlantWizard';
 import { uid } from '../lib/utils';
 import { findPlante } from '../lib/plantingCalendar';
 
@@ -12,7 +13,9 @@ export default function TabBacs({ bacs, plants, journal, setBacs, setPlants, set
   const [showPlantForm, setShowPlantForm] = useState(false);
   const [editPlant, setEditPlant] = useState(null);
   const [plantBacId, setPlantBacId] = useState(null);
+  const [prefillPlantName, setPrefillPlantName] = useState('');
   const [detailPlant, setDetailPlant] = useState(null);
+  const [showWizard, setShowWizard] = useState(false);
 
   const saveBac = data => {
     if (editBac) setBacs(b => b.map(x => x.id === editBac.id ? { ...x, ...data } : x));
@@ -34,7 +37,7 @@ export default function TabBacs({ bacs, plants, journal, setBacs, setPlants, set
     } else {
       setPlants(p => [...p, { id: uid(), ...data }]);
     }
-    setShowPlantForm(false); setEditPlant(null);
+    setShowPlantForm(false); setEditPlant(null); setPrefillPlantName('');
   };
 
   const delPlant = id => {
@@ -42,6 +45,14 @@ export default function TabBacs({ bacs, plants, journal, setBacs, setPlants, set
       setPlants(p => p.filter(x => x.id !== id));
       setDetailPlant(null);
     }
+  };
+
+  const prefillFromWizard = (bacId, nom) => {
+    setPlantBacId(bacId);
+    setEditPlant(null);
+    setPrefillPlantName(nom);
+    setShowWizard(false);
+    setShowPlantForm(true);
   };
 
   if (detailPlant) {
@@ -59,7 +70,7 @@ export default function TabBacs({ bacs, plants, journal, setBacs, setPlants, set
           onBack={() => setDetailPlant(null)}
         />
         {showPlantForm && (
-          <PlantForm initial={editPlant} bacs={bacs} plants={plants} defaultBacId={editPlant?.bac_id} onSave={savePlant} onClose={() => { setShowPlantForm(false); setEditPlant(null); }} />
+          <PlantForm initial={editPlant} bacs={bacs} plants={plants} defaultBacId={editPlant?.bac_id} onSave={savePlant} onClose={() => { setShowPlantForm(false); setEditPlant(null); setPrefillPlantName(''); }} />
         )}
       </>
     );
@@ -70,7 +81,7 @@ export default function TabBacs({ bacs, plants, journal, setBacs, setPlants, set
       {bacs.length === 0 ? (
         <div className="empty">
           <div className="empty-icon">🪴</div>
-          <div className="empty-text">Aucun bac pour l'instant.<br />Commence par créer ton premier bac !</div>
+          <div className="empty-text">Aucun bac pour l’instant.<br />Commence par créer ton premier bac !</div>
         </div>
       ) : (
         <div className="bacs-grid">
@@ -131,11 +142,24 @@ export default function TabBacs({ bacs, plants, journal, setBacs, setPlants, set
         })}
         </div>
       )}
-      <button className="btn-add" onClick={() => { setEditBac(null); setShowBacForm(true); }}>+ Ajouter un bac</button>
+      <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <button className="btn-add" style={{ marginTop: 0 }} onClick={() => { setEditBac(null); setShowBacForm(true); }}>+ Ajouter un bac</button>
+        {bacs.length > 0 && (
+          <button className="btn" onClick={() => setShowWizard(true)} style={{ whiteSpace: 'nowrap' }}>🧠 Wizard plantation</button>
+        )}
+      </div>
 
       {showBacForm && <BacForm initial={editBac} onSave={saveBac} onClose={() => { setShowBacForm(false); setEditBac(null); }} />}
       {showPlantForm && !detailPlant && (
-        <PlantForm initial={editPlant} bacs={bacs} plants={plants} defaultBacId={plantBacId} onSave={savePlant} onClose={() => { setShowPlantForm(false); setEditPlant(null); setPlantBacId(null); }} />
+        <PlantForm initial={editPlant} bacs={bacs} plants={plants} defaultBacId={plantBacId} defaultNom={prefillPlantName} onSave={savePlant} onClose={() => { setShowPlantForm(false); setEditPlant(null); setPlantBacId(null); setPrefillPlantName(''); }} />
+      )}
+      {showWizard && (
+        <PlantWizard
+          bacs={bacs}
+          plants={plants}
+          onClose={() => setShowWizard(false)}
+          onPrefillPlant={prefillFromWizard}
+        />
       )}
     </div>
   );
