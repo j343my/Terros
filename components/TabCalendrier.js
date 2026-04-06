@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { MOIS, getPlantPhases } from '../lib/utils';
 import { CALENDRIER_IDF, getRefPhases, getConseil, MOIS_COURT } from '../lib/plantingCalendar';
 import { Modal } from './ui';
+import { usePlantPhoto } from '../lib/usePlantPhoto';
 
 const PHASE_COLORS   = { semis: '#B5D4F4', croissance: '#C0DD97', recolte: '#EF9F27', none: '#F1EFE8' };
 const REF_COLORS     = { semis_int: '#B5D4F4', semis_ext: '#D4E8FA', plantation: '#C0DD97', recolte: '#EF9F27', none: '#F1EFE8' };
@@ -112,6 +113,7 @@ function PotagerView({ plants, bacs }) {
 function FichePlante({ plante, onClose }) {
   const currentMonth = new Date().getMonth();
   const conseil = getConseil(plante, currentMonth);
+  const { photoUrl } = usePlantPhoto(plante.nom);
   const phases = getRefPhases(plante);
   const isFleur = plante.famille === 'Fleur';
   const recolteLabel = isFleur ? 'Floraison' : 'Récolte';
@@ -131,6 +133,14 @@ function FichePlante({ plante, onClose }) {
 
   return (
     <Modal title={`${plante.emoji} ${plante.nom}`} onClose={onClose}>
+      {/* Photo */}
+      <div className="modal-photo-banner">
+        {photoUrl
+          ? <img src={photoUrl} alt={plante.nom} onError={e => { e.currentTarget.style.display = 'none'; }} />
+          : <span className="modal-photo-banner-emoji">{plante.emoji}</span>
+        }
+      </div>
+
       {/* Badges famille + difficulté */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
         <span style={{
