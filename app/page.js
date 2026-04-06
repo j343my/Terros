@@ -114,7 +114,12 @@ export default function PotagerApp() {
             {tab === 'calendrier' && <TabCalendrier plants={plants} bacs={bacs} />}
             {tab === 'arrosage' && <TabArrosage plants={plants} bacs={bacs} arrosage={arrosage} setArrosage={setArrosage} />}
             {tab === 'alertes' && <TabAlertes bacs={bacs} plants={plants} journal={journal} />}
-            {tab === 'reglages' && <TabReglages profile={profile} setProfile={setProfile} />}
+            {tab === 'reglages' && (
+            <TabReglages
+              profile={profile} setProfile={setProfile}
+              bacs={bacs} plants={plants} journal={journal} arrosage={arrosage}
+            />
+          )}
           </div>
         </main>
 

@@ -4,23 +4,29 @@
   "description": "Suivi de votre potager en bacs et jardinières",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f4f3ef",
-  "theme_color": "#3b6d11",
+  "background_color": "#A3B18A",
+  "theme_color": "#8FA878",
   "orientation": "portrait",
   "lang": "fr",
   "categories": ["lifestyle", "utilities"],
   "icons": [
     {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
       "src": "/icon-192.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icon-512.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
