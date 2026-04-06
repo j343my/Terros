@@ -437,13 +437,20 @@ html, body {
 /* ── Plant image banner ── */
 .plant-image-banner {
   border-radius: 10px;
-  height: 100px;
+  height: 160px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 14px;
 }
-.plant-image-emoji { font-size: 56px; line-height: 1; }
+.plant-image-emoji { font-size: 64px; line-height: 1; }
+.plant-image-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+}
 
 /* ── Plant reference notes ── */
 .plant-ref-notes {
