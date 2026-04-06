@@ -360,26 +360,38 @@ html, body {
   overscroll-behavior: contain;
 }
 
-.modal-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--gray-300); margin: 0 auto 16px; }
-.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+.modal-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--gray-300); margin: 0 auto 12px; }
+.modal-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 16px; }
+.modal-title { font-size: 18px; font-weight: 700; flex: 1; }
+.modal-close {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: none; background: var(--gray-100);
+  color: var(--text-2); font-size: 16px; line-height: 1;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-family: inherit;
+  transition: background 0.15s;
+}
+.modal-close:hover { background: var(--gray-300); }
 
 /* ── Photo dans le modal ── */
 .modal-photo-banner {
   border-radius: 10px;
-  height: 140px;
   overflow: hidden;
   margin-bottom: 14px;
-  background: var(--green-100);
+  background: var(--green-50);
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 80px;
 }
 .modal-photo-banner img {
-  width: 100%; height: 100%;
-  object-fit: cover;
+  width: 100%;
+  height: auto;
+  max-height: 240px;
+  object-fit: contain;
   display: block;
 }
-.modal-photo-banner-emoji { font-size: 52px; line-height: 1; }
+.modal-photo-banner-emoji { font-size: 64px; line-height: 1; padding: 16px 0; }
 
 /* ── Fields ── */
 .field { margin-bottom: 14px; }
@@ -456,18 +468,19 @@ html, body {
 /* ── Plant image banner ── */
 .plant-image-banner {
   border-radius: 10px;
-  height: 160px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 14px;
+  min-height: 80px;
 }
-.plant-image-emoji { font-size: 64px; line-height: 1; }
+.plant-image-emoji { font-size: 72px; line-height: 1; padding: 20px 0; }
 .plant-image-photo {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 10px;
+  height: auto;
+  max-height: 260px;
+  object-fit: contain;
   display: block;
 }
 

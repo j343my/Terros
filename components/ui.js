@@ -5,7 +5,10 @@ export function Modal({ title, onClose, children }) {
     <div className="modal-bg" onClick={e => { if (e.target.classList.contains('modal-bg')) onClose(); }}>
       <div className="modal">
         <div className="modal-handle" />
-        <div className="modal-title">{title}</div>
+        <div className="modal-header">
+          <div className="modal-title">{title}</div>
+          <button className="modal-close" onClick={onClose} aria-label="Fermer">✕</button>
+        </div>
         {children}
       </div>
     </div>
