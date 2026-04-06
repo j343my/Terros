@@ -7,10 +7,12 @@ import TabBacs from '../components/TabBacs';
 import TabCalendrier from '../components/TabCalendrier';
 import TabAlertes from '../components/TabAlertes';
 import TabReglages from '../components/TabReglages';
+import TabArrosage from '../components/TabArrosage';
 
 const TABS = [
   { id: 'bacs', icon: '🪴', label: 'Mes Bacs' },
   { id: 'calendrier', icon: '📅', label: 'Calendrier' },
+  { id: 'arrosage', icon: '💧', label: 'Arrosage' },
   { id: 'alertes', icon: '🔔', label: 'Alertes' },
   { id: 'reglages', icon: '⚙️', label: 'Réglages' },
 ];
@@ -21,6 +23,7 @@ export default function PotagerApp() {
   const [plants, setPlants] = useLocalStorage('potager_plants', SEED_PLANTS);
   const [journal, setJournal] = useLocalStorage('potager_journal', SEED_JOURNAL);
   const [profile, setProfile] = useLocalStorage('potager_profile', SEED_PROFILE);
+  const [arrosage, setArrosage] = useLocalStorage('potager_arrosage', {});
 
   const alerts = useMemo(() => computeAlerts(bacs, plants), [bacs, plants]);
   const urgentCount = alerts.filter(a => a.urgent).length;
@@ -109,6 +112,7 @@ export default function PotagerApp() {
 
             {tab === 'bacs' && <TabBacs bacs={bacs} plants={plants} journal={journal} setBacs={setBacs} setPlants={setPlants} setJournal={setJournal} />}
             {tab === 'calendrier' && <TabCalendrier plants={plants} bacs={bacs} />}
+            {tab === 'arrosage' && <TabArrosage plants={plants} bacs={bacs} arrosage={arrosage} setArrosage={setArrosage} />}
             {tab === 'alertes' && <TabAlertes bacs={bacs} plants={plants} journal={journal} />}
             {tab === 'reglages' && <TabReglages profile={profile} setProfile={setProfile} />}
           </div>
