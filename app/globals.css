@@ -517,6 +517,39 @@ html, body {
   flex-shrink: 0;
 }
 
+/* ── Search bar ── */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 0 12px;
+  margin-bottom: 14px;
+  transition: border-color 0.15s;
+}
+.search-bar:focus-within { border-color: var(--green-600); }
+.search-icon { font-size: 14px; flex-shrink: 0; opacity: 0.6; }
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: none;
+  font-size: 13px;
+  color: var(--text);
+  font-family: inherit;
+  padding: 10px 0;
+}
+.search-input::placeholder { color: var(--text-3); }
+.search-input::-webkit-search-cancel-button { display: none; }
+.search-clear {
+  border: none; background: none; cursor: pointer;
+  font-size: 11px; color: var(--text-3); padding: 4px;
+  border-radius: 50%; line-height: 1; font-family: inherit;
+}
+.search-clear:hover { background: var(--gray-100); color: var(--text); }
+
 /* ── Arrosage card ── */
 .arrosage-card { transition: border-color 0.15s; }
 .arrosage-urgent { border-color: var(--terra-300) !important; }

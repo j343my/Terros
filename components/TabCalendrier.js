@@ -47,6 +47,7 @@ const FAMILLE_COLORS = {
 // ──────────────────────────────────────────────────────────
 function PotagerView({ plants, bacs }) {
   const yr = new Date().getFullYear();
+  const [search, setSearch] = useState('');
 
   if (plants.length === 0) return (
     <div className="empty">
@@ -55,8 +56,24 @@ function PotagerView({ plants, bacs }) {
     </div>
   );
 
+  const filtered = search.trim()
+    ? plants.filter(p => p.nom.toLowerCase().includes(search.toLowerCase()) || (p.varietal || '').toLowerCase().includes(search.toLowerCase()))
+    : plants;
+
   return (
     <div>
+      <div className="search-bar">
+        <span className="search-icon">🔍</span>
+        <input
+          className="search-input"
+          type="search"
+          placeholder="Rechercher une plante…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        {search && <button className="search-clear" onClick={() => setSearch('')}>✕</button>}
+      </div>
+
       <div className="cal-legend">
         {[['#B5D4F4', 'Semis int.'], ['#C0DD97', 'Croissance'], ['#EF9F27', 'Récolte'], ['#F1EFE8', 'Repos']].map(([c, l]) => (
           <div key={l} className="cal-legend-item">
@@ -79,7 +96,10 @@ function PotagerView({ plants, bacs }) {
             ))}
           </div>
 
-          {plants.map(p => {
+          {filtered.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-3)', fontSize: 13 }}>Aucune plante ne correspond à « {search} »</div>
+          )}
+          {filtered.map(p => {
             const phases = getPlantPhases(p);
             const bac = bacs.find(b => b.id === p.bac_id);
             return (
@@ -380,6 +400,7 @@ function ReferentielView() {
   const currentMonth = new Date().getMonth();
   const [filtre, setFiltre] = useState('Tout');
   const [fichePlante, setFichePlante] = useState(null);
+  const [search, setSearch] = useState('');
 
   const familles = ['Tout', ...FAMILLES_ORDER.filter(f => CALENDRIER_IDF.some(p => p.famille === f))];
 
@@ -387,8 +408,13 @@ function ReferentielView() {
     ? CALENDRIER_IDF
     : CALENDRIER_IDF.filter(p => p.famille === filtre);
 
+  const searchTerm = search.trim().toLowerCase();
+  const filtered = searchTerm
+    ? plantes.filter(p => p.nom.toLowerCase().includes(searchTerm) || p.famille.toLowerCase().includes(searchTerm))
+    : plantes;
+
   // Trier : celles disponibles maintenant en premier
-  const sorted = [...plantes].sort((a, b) => {
+  const sorted = [...filtered].sort((a, b) => {
     const score = p => {
       const c = getConseil(p, currentMonth);
       if (c.recolte?.status === 'ok') return 0;
@@ -406,6 +432,19 @@ function ReferentielView() {
         <FichePlante plante={fichePlante} onClose={() => setFichePlante(null)} />
       )}
 
+      {/* Barre de recherche */}
+      <div className="search-bar">
+        <span className="search-icon">🔍</span>
+        <input
+          className="search-input"
+          type="search"
+          placeholder="Rechercher une plante ou une famille…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        {search && <button className="search-clear" onClick={() => setSearch('')}>✕</button>}
+      </div>
+
       {/* Bandeau mois courant */}
       <div style={{
         padding: '10px 14px', marginBottom: 16,
@@ -414,6 +453,7 @@ function ReferentielView() {
       }}>
         <span style={{ fontWeight: 700 }}>Île-de-France · {MOIS_COURT[currentMonth]}</span>
         {' — '}Cliquez sur une plante pour ouvrir sa fiche détail.
+        {search && sorted.length === 0 && <span style={{ color: 'var(--terra-500)', marginLeft: 8 }}>Aucun résultat pour « {search} »</span>}
       </div>
 
       {/* Légende */}
