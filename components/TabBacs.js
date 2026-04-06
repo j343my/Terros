@@ -59,7 +59,7 @@ export default function TabBacs({ bacs, plants, journal, setBacs, setPlants, set
           onBack={() => setDetailPlant(null)}
         />
         {showPlantForm && (
-          <PlantForm initial={editPlant} bacs={bacs} defaultBacId={editPlant?.bac_id} onSave={savePlant} onClose={() => { setShowPlantForm(false); setEditPlant(null); }} />
+          <PlantForm initial={editPlant} bacs={bacs} plants={plants} defaultBacId={editPlant?.bac_id} onSave={savePlant} onClose={() => { setShowPlantForm(false); setEditPlant(null); }} />
         )}
       </>
     );
@@ -83,7 +83,7 @@ export default function TabBacs({ bacs, plants, journal, setBacs, setPlants, set
                 <div style={{ flex: 1 }}>
                   <div className="card-title">{bac.nom}</div>
                   <div className="card-sub">
-                    {[bac.dimensions && bac.dimensions + ' cm', bac.volume && bac.volume + ' L', bac.exposition].filter(Boolean).join(' · ')}
+                    {[bac.dimensions && bac.dimensions + ' cm', bac.volume && bac.volume + ' L', bac.exposition, bac.emplacement === 'interieur' ? 'Intérieur' : 'Extérieur'].filter(Boolean).join(' · ')}
                   </div>
                 </div>
                 <div className="card-actions">
@@ -121,7 +121,7 @@ export default function TabBacs({ bacs, plants, journal, setBacs, setPlants, set
 
       {showBacForm && <BacForm initial={editBac} onSave={saveBac} onClose={() => { setShowBacForm(false); setEditBac(null); }} />}
       {showPlantForm && !detailPlant && (
-        <PlantForm initial={editPlant} bacs={bacs} defaultBacId={plantBacId} onSave={savePlant} onClose={() => { setShowPlantForm(false); setEditPlant(null); setPlantBacId(null); }} />
+        <PlantForm initial={editPlant} bacs={bacs} plants={plants} defaultBacId={plantBacId} onSave={savePlant} onClose={() => { setShowPlantForm(false); setEditPlant(null); setPlantBacId(null); }} />
       )}
     </div>
   );
