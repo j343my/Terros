@@ -261,11 +261,14 @@ export function BacForm({ initial, onSave, onClose }) {
 
 const CALENDAR_NAMES = CALENDRIER_IDF.map(p => p.nom);
 
-export function PlantForm({ initial, bacs, plants = [], defaultBacId, onSave, onClose }) {
+export function PlantForm({ initial, bacs, plants = [], defaultBacId, defaultNom = '', onSave, onClose }) {
   const initialIsCustom = initial?.nom ? !CALENDAR_NAMES.includes(initial.nom) : false;
   const [search, setSearch] = useState('');
-  const [nomSelect, setNomSelect] = useState(initialIsCustom ? '__autre__' : (initial?.nom || ''));
-  const [nomCustom, setNomCustom] = useState(initialIsCustom ? (initial?.nom || '') : '');
+  const defaultIsCustom = defaultNom ? !CALENDAR_NAMES.includes(defaultNom) : false;
+  const [nomSelect, setNomSelect] = useState(
+    initialIsCustom ? '__autre__' : (initial?.nom || (defaultIsCustom ? '__autre__' : defaultNom))
+  );
+  const [nomCustom, setNomCustom] = useState(initialIsCustom ? (initial?.nom || '') : (defaultIsCustom ? defaultNom : ''));
   const nom = nomSelect === '__autre__' ? nomCustom : nomSelect;
 
   const [varietal, setVarietal] = useState(initial?.varietal || '');
