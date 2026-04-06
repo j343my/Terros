@@ -42,6 +42,7 @@
 
 html, body {
   height: 100%;
+  overflow: hidden;
   background: var(--bg);
   color: var(--text);
   font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
@@ -83,9 +84,11 @@ html, body {
 .main {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 20px;
   padding-bottom: calc(20px + 64px + env(safe-area-inset-bottom, 0px));
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .tab-bar {
