@@ -196,6 +196,25 @@ export function PlantForm({ initial, bacs, defaultBacId, onSave, onClose }) {
   const refPlante = useMemo(() => findPlante(nom), [nom]);
   const cultureType = useMemo(() => getCultureType(refPlante), [refPlante]);
   const recoltable = useMemo(() => (refPlante ? isPlanteRecoltable(refPlante) : true), [refPlante]);
+  const selectedBac = useMemo(() => bacs.find(b => b.id === bacId), [bacs, bacId]);
+  const bacEmplacement = selectedBac?.emplacement || 'exterieur';
+  const cultureMismatch = useMemo(() => {
+    if (!refPlante || !selectedBac) return null;
+    if (cultureType === 'mixte') return null;
+    if (cultureType === 'exterieur' && bacEmplacement === 'interieur') {
+      return {
+        level: 'warning',
+        text: '⚠️ Cette plante est plutôt adaptée à l’extérieur, mais le bac sélectionné est en intérieur.',
+      };
+    }
+    if (cultureType === 'interieur' && bacEmplacement === 'exterieur') {
+      return {
+        level: 'info',
+        text: 'ℹ️ Cette plante est plutôt adaptée à l’intérieur, mais le bac sélectionné est en extérieur.',
+      };
+    }
+    return null;
+  }, [refPlante, selectedBac, cultureType, bacEmplacement]);
   const plantesFiltrees = useMemo(() => {
     const query = search.toLowerCase().trim();
     if (!query) return CALENDRIER_IDF;
@@ -266,6 +285,21 @@ export function PlantForm({ initial, bacs, defaultBacId, onSave, onClose }) {
           <select value={bacId} onChange={e => setBacId(e.target.value)}>
             {bacs.map(b => <option key={b.id} value={b.id}>{b.nom}</option>)}
           </select>
+        </div>
+      )}
+      {cultureMismatch && (
+        <div style={{
+          marginTop: -4,
+          marginBottom: 10,
+          padding: '8px 10px',
+          borderRadius: 8,
+          fontSize: 11,
+          lineHeight: 1.4,
+          border: `1px solid ${cultureMismatch.level === 'warning' ? 'var(--amber-300)' : '#bfdbfe'}`,
+          background: cultureMismatch.level === 'warning' ? 'var(--amber-50)' : '#eef6ff',
+          color: cultureMismatch.level === 'warning' ? '#92400e' : '#1d4ed8',
+        }}>
+          {cultureMismatch.text}
         </div>
       )}
       <div className="field">
