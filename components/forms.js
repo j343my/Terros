@@ -2,7 +2,7 @@
 import { useState, useMemo } from 'react';
 import { Modal } from './ui';
 import { STATUS_LABELS } from '../lib/utils';
-import { CALENDRIER_IDF, findPlante, getConseil, suggestDates, getCultureType, isPlanteRecoltable } from '../lib/plantingCalendar';
+import { CALENDRIER_IDF, findPlante, getConseil, suggestDates, getCultureType, isPlanteRecoltable, getIncompatibilitesDansBac } from '../lib/plantingCalendar';
 
 const MOIS_COURT = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
 
@@ -143,6 +143,8 @@ export function BacForm({ initial, onSave, onClose }) {
   const [vol, setVol] = useState(initial?.volume || '');
   const [expo, setExpo] = useState(initial?.exposition || 'Sud-Est');
   const [emplacement, setEmplacement] = useState(initial?.emplacement || 'exterieur');
+  const [etat, setEtat] = useState(initial?.etat || 'actif');
+  const [conseils, setConseils] = useState(initial?.conseils || '');
   const [notes, setNotes] = useState(initial?.notes || '');
 
   return (
@@ -163,10 +165,23 @@ export function BacForm({ initial, onSave, onClose }) {
           {['Sud', 'Sud-Est', 'Sud-Ouest', 'Est', 'Ouest', 'Nord-Est', 'Nord'].map(x => <option key={x}>{x}</option>)}
         </select>
       </div>
+      <div className="field">
+        <label>État du bac</label>
+        <select value={etat} onChange={e => setEtat(e.target.value)}>
+          <option value="actif">Actif</option>
+          <option value="en_creation">En création</option>
+        </select>
+      </div>
+      {etat === 'en_creation' && (
+        <div style={{ marginTop: -4, marginBottom: 10, padding: '8px 10px', borderRadius: 8, fontSize: 11, lineHeight: 1.45, border: '1px solid var(--amber-300)', background: 'var(--amber-50)', color: '#92400e' }}>
+          💡 Astuce : note ici ton plan (composition du substrat, choix de plantes, arrosage) avant mise en culture.
+        </div>
+      )}
+      <div className="field"><label>Conseils / plan du bac</label><textarea value={conseils} onChange={e => setConseils(e.target.value)} placeholder="Ex : Ajouter 30% compost, éviter solanacées ensemble, pailler en surface…" /></div>
       <div className="field"><label>Notes</label><textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Emplacement, particularités…" /></div>
       <div className="modal-actions">
         <button className="btn" onClick={onClose}>Annuler</button>
-        <button className="btn btn-primary" onClick={() => { if (nom) onSave({ nom, dimensions: dim, volume: vol, exposition: expo, emplacement, notes }); }}>Enregistrer</button>
+        <button className="btn btn-primary" onClick={() => { if (nom) onSave({ nom, dimensions: dim, volume: vol, exposition: expo, emplacement, etat, conseils, notes }); }}>Enregistrer</button>
       </div>
     </Modal>
   );
@@ -174,7 +189,7 @@ export function BacForm({ initial, onSave, onClose }) {
 
 const CALENDAR_NAMES = CALENDRIER_IDF.map(p => p.nom);
 
-export function PlantForm({ initial, bacs, defaultBacId, onSave, onClose }) {
+export function PlantForm({ initial, bacs, plants = [], defaultBacId, onSave, onClose }) {
   const initialIsCustom = initial?.nom ? !CALENDAR_NAMES.includes(initial.nom) : false;
   const [search, setSearch] = useState('');
   const [nomSelect, setNomSelect] = useState(initialIsCustom ? '__autre__' : (initial?.nom || ''));
@@ -197,6 +212,14 @@ export function PlantForm({ initial, bacs, defaultBacId, onSave, onClose }) {
   const cultureType = useMemo(() => getCultureType(refPlante), [refPlante]);
   const recoltable = useMemo(() => (refPlante ? isPlanteRecoltable(refPlante) : true), [refPlante]);
   const selectedBac = useMemo(() => bacs.find(b => b.id === bacId), [bacs, bacId]);
+  const plantesDuBac = useMemo(
+    () => plants.filter(p => p.bac_id === bacId && p.id !== initial?.id),
+    [plants, bacId, initial?.id],
+  );
+  const incompatibilites = useMemo(
+    () => (nom ? getIncompatibilitesDansBac(nom, plantesDuBac) : []),
+    [nom, plantesDuBac],
+  );
   const bacEmplacement = selectedBac?.emplacement || 'exterieur';
   const cultureMismatch = useMemo(() => {
     if (!refPlante || !selectedBac) return null;
@@ -300,6 +323,30 @@ export function PlantForm({ initial, bacs, defaultBacId, onSave, onClose }) {
           color: cultureMismatch.level === 'warning' ? '#92400e' : '#1d4ed8',
         }}>
           {cultureMismatch.text}
+        </div>
+      )}
+      {nom && plantesDuBac.length > 0 && (
+        <div style={{
+          marginTop: -4,
+          marginBottom: 10,
+          padding: '8px 10px',
+          borderRadius: 8,
+          fontSize: 11,
+          lineHeight: 1.45,
+          border: `1px solid ${incompatibilites.length > 0 ? 'var(--terra-300)' : 'var(--green-200)'}`,
+          background: incompatibilites.length > 0 ? '#fff2f2' : 'var(--green-50)',
+          color: incompatibilites.length > 0 ? '#9f1239' : 'var(--green-700)',
+        }}>
+          <div style={{ fontWeight: 700, marginBottom: incompatibilites.length > 0 ? 5 : 0 }}>
+            {incompatibilites.length > 0 ? '⚠️ Incompatibilités détectées dans ce bac' : '✅ Aucune incompatibilité détectée dans ce bac'}
+          </div>
+          {incompatibilites.length > 0 && (
+            <ul style={{ margin: 0, paddingLeft: 16 }}>
+              {incompatibilites.map(item => (
+                <li key={`${item.nom}-${item.raison}`}>Avec <strong>{item.nom}</strong> : {item.raison}</li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
       <div className="field">

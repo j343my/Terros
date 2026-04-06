@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { BadgeOrigine, BadgeStatus } from './ui';
 import { BacForm, PlantForm } from './forms';
 import PlantDetail from './PlantDetail';
-import { STATUS_COLORS, uid } from '../lib/utils';
+import { uid } from '../lib/utils';
 import { findPlante } from '../lib/plantingCalendar';
 
 export default function TabBacs({ bacs, plants, journal, setBacs, setPlants, setJournal }) {
@@ -59,7 +59,7 @@ export default function TabBacs({ bacs, plants, journal, setBacs, setPlants, set
           onBack={() => setDetailPlant(null)}
         />
         {showPlantForm && (
-          <PlantForm initial={editPlant} bacs={bacs} defaultBacId={editPlant?.bac_id} onSave={savePlant} onClose={() => { setShowPlantForm(false); setEditPlant(null); }} />
+          <PlantForm initial={editPlant} bacs={bacs} plants={plants} defaultBacId={editPlant?.bac_id} onSave={savePlant} onClose={() => { setShowPlantForm(false); setEditPlant(null); }} />
         )}
       </>
     );
@@ -85,6 +85,20 @@ export default function TabBacs({ bacs, plants, journal, setBacs, setPlants, set
                   <div className="card-sub">
                     {[bac.dimensions && bac.dimensions + ' cm', bac.volume && bac.volume + ' L', bac.exposition, bac.emplacement === 'interieur' ? 'Intérieur' : 'Extérieur'].filter(Boolean).join(' · ')}
                   </div>
+                  {(bac.etat === 'en_creation' || bac.conseils) && (
+                    <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {bac.etat === 'en_creation' && (
+                        <span style={{ display: 'inline-block', width: 'fit-content', fontSize: 10, fontWeight: 700, color: '#92400e', background: 'var(--amber-100)', border: '1px solid var(--amber-300)', borderRadius: 99, padding: '1px 8px' }}>
+                          En création
+                        </span>
+                      )}
+                      {bac.conseils && (
+                        <span style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.35 }}>
+                          💡 {bac.conseils}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="card-actions">
                   <button className="btn-ghost" onClick={() => { setEditBac(bac); setShowBacForm(true); }}>✎</button>
@@ -121,7 +135,7 @@ export default function TabBacs({ bacs, plants, journal, setBacs, setPlants, set
 
       {showBacForm && <BacForm initial={editBac} onSave={saveBac} onClose={() => { setShowBacForm(false); setEditBac(null); }} />}
       {showPlantForm && !detailPlant && (
-        <PlantForm initial={editPlant} bacs={bacs} defaultBacId={plantBacId} onSave={savePlant} onClose={() => { setShowPlantForm(false); setEditPlant(null); setPlantBacId(null); }} />
+        <PlantForm initial={editPlant} bacs={bacs} plants={plants} defaultBacId={plantBacId} onSave={savePlant} onClose={() => { setShowPlantForm(false); setEditPlant(null); setPlantBacId(null); }} />
       )}
     </div>
   );
