@@ -47,6 +47,7 @@ const FAMILLE_COLORS = {
 // ──────────────────────────────────────────────────────────
 function PotagerView({ plants, bacs }) {
   const yr = new Date().getFullYear();
+  const [recherche, setRecherche] = useState('');
 
   if (plants.length === 0) return (
     <div className="empty">
@@ -55,8 +56,36 @@ function PotagerView({ plants, bacs }) {
     </div>
   );
 
+  const plantesFiltrees = recherche.trim()
+    ? plants.filter(p => p.nom.toLowerCase().includes(recherche.toLowerCase().trim()))
+    : plants;
+
   return (
     <div>
+      {/* Barre de recherche */}
+      <div style={{ position: 'relative', marginBottom: 14 }}>
+        <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: 'var(--text-3)', pointerEvents: 'none' }}>🔍</span>
+        <input
+          type="text"
+          placeholder="Rechercher une plante…"
+          value={recherche}
+          onChange={e => setRecherche(e.target.value)}
+          style={{
+            width: '100%', boxSizing: 'border-box',
+            padding: '8px 12px 8px 32px', borderRadius: 'var(--radius)',
+            border: '1px solid var(--border-strong)', background: 'var(--surface)',
+            fontSize: 13, color: 'var(--text)', fontFamily: 'inherit', outline: 'none',
+          }}
+        />
+        {recherche && (
+          <button onClick={() => setRecherche('')} style={{
+            position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+            background: 'none', border: 'none', cursor: 'pointer', fontSize: 14,
+            color: 'var(--text-3)', padding: 2, lineHeight: 1,
+          }}>×</button>
+        )}
+      </div>
+
       <div className="cal-legend">
         {[['#B5D4F4', 'Semis int.'], ['#C0DD97', 'Croissance'], ['#EF9F27', 'Récolte'], ['#F1EFE8', 'Repos']].map(([c, l]) => (
           <div key={l} className="cal-legend-item">
@@ -79,7 +108,12 @@ function PotagerView({ plants, bacs }) {
             ))}
           </div>
 
-          {plants.map(p => {
+          {plantesFiltrees.length === 0 && (
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--text-3)', fontSize: 12, padding: '20px 0' }}>
+              Aucune plante ne correspond à « {recherche} »
+            </div>
+          )}
+          {plantesFiltrees.map(p => {
             const phases = getPlantPhases(p);
             const bac = bacs.find(b => b.id === p.bac_id);
             return (
@@ -380,6 +414,7 @@ function ReferentielView() {
   const currentMonth = new Date().getMonth();
   const [filtre, setFiltre] = useState('Tout');
   const [fichePlante, setFichePlante] = useState(null);
+  const [recherche, setRecherche] = useState('');
 
   const familles = ['Tout', ...FAMILLES_ORDER.filter(f => CALENDRIER_IDF.some(p => p.famille === f))];
 
@@ -387,8 +422,15 @@ function ReferentielView() {
     ? CALENDRIER_IDF
     : CALENDRIER_IDF.filter(p => p.famille === filtre);
 
+  const plantesFiltrees = recherche.trim()
+    ? plantes.filter(p =>
+        p.nom.toLowerCase().includes(recherche.toLowerCase().trim()) ||
+        p.famille.toLowerCase().includes(recherche.toLowerCase().trim())
+      )
+    : plantes;
+
   // Trier : celles disponibles maintenant en premier
-  const sorted = [...plantes].sort((a, b) => {
+  const sorted = [...plantesFiltrees].sort((a, b) => {
     const score = p => {
       const c = getConseil(p, currentMonth);
       if (c.recolte?.status === 'ok') return 0;
@@ -426,6 +468,30 @@ function ReferentielView() {
         ))}
       </div>
 
+      {/* Barre de recherche */}
+      <div style={{ position: 'relative', marginBottom: 12 }}>
+        <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: 'var(--text-3)', pointerEvents: 'none' }}>🔍</span>
+        <input
+          type="text"
+          placeholder="Rechercher par nom ou famille…"
+          value={recherche}
+          onChange={e => setRecherche(e.target.value)}
+          style={{
+            width: '100%', boxSizing: 'border-box',
+            padding: '8px 12px 8px 32px', borderRadius: 'var(--radius)',
+            border: '1px solid var(--border-strong)', background: 'var(--surface)',
+            fontSize: 13, color: 'var(--text)', fontFamily: 'inherit', outline: 'none',
+          }}
+        />
+        {recherche && (
+          <button onClick={() => setRecherche('')} style={{
+            position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+            background: 'none', border: 'none', cursor: 'pointer', fontSize: 14,
+            color: 'var(--text-3)', padding: 2, lineHeight: 1,
+          }}>×</button>
+        )}
+      </div>
+
       {/* Filtre par famille */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
         {familles.map(f => {
@@ -453,6 +519,11 @@ function ReferentielView() {
 
       {/* Grille des plantes */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10 }}>
+        {sorted.length === 0 && (
+          <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--text-3)', fontSize: 12, padding: '20px 0' }}>
+            Aucune plante ne correspond à « {recherche} »
+          </div>
+        )}
         {sorted.map(p => (
           <RefCard key={p.nom} plante={p} onClick={() => setFichePlante(p)} />
         ))}
